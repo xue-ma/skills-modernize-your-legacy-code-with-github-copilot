@@ -1,0 +1,26 @@
+# COBOL Student Account Test Plan
+
+This test plan validates the current COBOL business logic and implementation and is designed so it can later be mapped into Node.js unit and integration tests.
+
+## Test Cases
+
+| Test Case ID | Test Case Description | Pre-conditions | Test Steps | Expected Result | Actual Result | Status (Pass/Fail) | Comments |
+|---|---|---|---|---|---|---|---|
+| TC-001 | Verify application startup and menu rendering | Application is compiled successfully. | 1. Run `./accountsystem`.<br>2. Observe first screen before entering input. | Menu displays:<br>- Account Management System<br>- 1 View Balance<br>- 2 Credit Account<br>- 3 Debit Account<br>- 4 Exit<br>- Prompt for choice. | TBD | TBD | Baseline smoke test for UI loop. |
+| TC-002 | Verify exit option ends application loop | Application is running at main menu. | 1. Enter `4`.<br>2. Observe terminal output and process termination. | Program displays goodbye message and exits cleanly. | TBD | TBD | Validates `CONTINUE-FLAG` flow to stop loop. |
+| TC-003 | Verify invalid menu choice handling | Application is running at main menu. | 1. Enter an out-of-range numeric choice (for example `9`).<br>2. Observe message.<br>3. Confirm menu displays again. | Program displays `Invalid choice, please select 1-4.` and returns to menu loop. | TBD | TBD | Covers `WHEN OTHER` path in menu evaluation. |
+| TC-004 | Verify initial balance is 1000.00 through View Balance | Freshly started app session (no prior transaction in this run). | 1. Enter `1` (View Balance). | Output shows current balance as `1000.00` (format may include COBOL spacing). | TBD | TBD | Confirms initial `STORAGE-BALANCE` value via READ flow. |
+| TC-005 | Verify credit operation increases balance | Fresh app session, or known current balance captured from View Balance. | 1. Enter `2` (Credit Account).<br>2. Enter credit amount `250.00`.<br>3. Enter `1` (View Balance). | Credit confirmation is shown.<br>New balance equals previous balance + 250.00.<br>View Balance returns same updated amount. | TBD | TBD | Validates CREDIT branch and WRITE persistence. |
+| TC-006 | Verify debit operation decreases balance when funds are sufficient | Known balance is at least `200.00`. | 1. Enter `3` (Debit Account).<br>2. Enter debit amount `200.00`.<br>3. Enter `1` (View Balance). | Debit confirmation is shown.<br>New balance equals previous balance - 200.00.<br>View Balance returns same updated amount. | TBD | TBD | Validates DEBIT success path and WRITE persistence. |
+| TC-007 | Verify insufficient funds prevents debit and keeps balance unchanged | Known balance is less than requested debit amount (for example balance `100.00`, debit `500.00`). | 1. Enter `3` (Debit Account).<br>2. Enter debit amount greater than current balance.<br>3. Enter `1` (View Balance). | Program displays `Insufficient funds for this debit.`<br>No debit confirmation message.<br>Balance remains unchanged from pre-step value. | TBD | TBD | Critical business rule for overdraft prevention. |
+| TC-008 | Verify debit equal to current balance is allowed | Known balance value available (for example `300.00`). | 1. Enter `3` (Debit Account).<br>2. Enter exactly the full current balance amount.<br>3. Enter `1` (View Balance). | Debit is accepted because condition is `>=`.<br>New balance becomes `0.00`. | TBD | TBD | Boundary test for debit condition. |
+| TC-009 | Verify cumulative credits across multiple operations in same session | Fresh app session or known starting balance. | 1. Enter `2`, credit `100.00`.<br>2. Enter `2`, credit `50.00`.<br>3. Enter `1` (View Balance). | Final balance equals starting balance + 150.00. | TBD | TBD | Confirms repeated READ/WRITE cycles maintain cumulative state. |
+| TC-010 | Verify mixed transaction sequence and final balance calculation | Fresh app session preferred. | 1. Enter `1` and capture initial balance B0.<br>2. Enter `2`, credit `120.50`.<br>3. Enter `3`, debit `20.25`.<br>4. Enter `1` and capture final balance B1. | B1 = B0 + 120.50 - 20.25.<br>Displayed values align with two-decimal currency behavior. | TBD | TBD | End-to-end scenario for stakeholder validation. |
+| TC-011 | Verify View Balance is read-only (no mutation) | Known current balance captured. | 1. Enter `1` repeatedly (for example 3 times) without credit/debit between views. | Reported balance stays identical across all consecutive reads. | TBD | TBD | Confirms TOTAL/READ path does not alter stored data. |
+| TC-012 | Verify menu loop continues after completed transactions | Application is running. | 1. Execute one successful credit or debit.<br>2. Observe whether menu is shown again automatically. | After transaction message, app returns to main menu and accepts next choice until `4` is selected. | TBD | TBD | Validates core user journey continuity. |
+
+## Notes For Node.js Migration
+
+- Candidate integration tests: TC-001 through TC-012 as user-flow/API-flow scenarios.
+- Candidate unit tests:<br>- Debit decision rule (`balance >= amount`).<br>- Balance update formulas for credit and debit.<br>- Read versus write behavior in data-access adapter.<br>- Invalid menu/command handling.
+- Keep expected messages stable where possible to preserve business-facing behavior during modernization.
